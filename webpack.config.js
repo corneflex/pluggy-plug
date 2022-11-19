@@ -7,6 +7,13 @@ const ModuleFederationPlugin =
 module.exports = {
     mode: 'development',
     devServer: {
+        headers: {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods':
+                'GET, POST, PUT, DELETE, PATCH, OPTIONS',
+            'Access-Control-Allow-Headers':
+                'X-Requested-With, content-type, Authorization',
+        },
         static: {
             directory: path.join(__dirname, 'public'),
         },
@@ -36,7 +43,7 @@ module.exports = {
             name: 'pluggy_plug',
             filename: 'remoteEntry.js',
             exposes: {
-                './Widget': './src/components/Widget',
+                './Widget': './src/components/Widget.tsx',
             },
             shared: {
                 react: {

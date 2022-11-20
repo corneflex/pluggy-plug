@@ -1,11 +1,13 @@
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const peerDeps = require('./package.json').peerDependencies;
+const deps = require('./package.json').dependencies;
 const ModuleFederationPlugin =
     require('webpack').container.ModuleFederationPlugin;
 
 module.exports = {
+    entry: './src/index.tsx',
     mode: 'development',
+    target: 'web',
     devServer: {
         headers: {
             'Access-Control-Allow-Origin': '*',
@@ -17,19 +19,17 @@ module.exports = {
         static: {
             directory: path.join(__dirname, 'public'),
         },
-        compress: true,
         port: 9000,
     },
-    entry: path.resolve(__dirname, 'src', 'index.tsx'),
     output: {
-        publicPath: '/',
+        publicPath: 'http://localhost:9000/',
         path: path.resolve(__dirname, 'dist'),
         filename: 'bundle.js',
     },
     module: {
         rules: [
             {
-                test: /\.tsx?$/,
+                test: /\.(js|jsx|tsx|ts)$/,
                 use: 'ts-loader',
                 exclude: /node_modules/,
             },
@@ -40,27 +40,36 @@ module.exports = {
     },
     plugins: [
         new ModuleFederationPlugin({
-            name: 'pluggy_plug',
+            name: 'pluggy',
             filename: 'remoteEntry.js',
+            library: {
+                type: 'module',
+            },
             exposes: {
                 './Widget': './src/components/Widget.tsx',
             },
             shared: {
                 react: {
-                    requiredVersion: peerDeps.react,
+                    requiredVersion: deps.react,
+                    eager: true,
                     import: 'react', // the "react" package will be used a provided and fallback module
                     shareKey: 'react', // under this name the shared module will be placed in the share scope
                     shareScope: 'default', // share scope with this name will be used
                     singleton: true, // only a single version of the shared module is allowed
                 },
                 'react-dom': {
-                    requiredVersion: peerDeps['react-dom'],
+                    requiredVersion: deps['react-dom'],
+                    eager: true,
                     singleton: true, // only a single version of the shared module is allowed
                 },
             },
         }),
         new HtmlWebpackPlugin({
-            template: path.join(__dirname, 'public', 'index.html'),
+            template: './public/index.html',
+            inject: false,
         }),
     ],
+    experiments: {
+        outputModule: true,
+    },
 };
